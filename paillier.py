@@ -70,7 +70,7 @@ class Paillier():
 
         return (x-1) // self.plaintext_modulo
 
-
+#TODO:Add homomorphic addition
 cryptosystem = Paillier()
 
 message = 10
