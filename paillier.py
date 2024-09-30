@@ -88,16 +88,17 @@ print(f'Ciphertext is: {ciphertext1}')
 print(f'Decrypted message is: {decrypted1}')
 
 multiplier = 2
-print(f'\nI can also multiply the ciphertext with a constant. For example, if I multiply by 2, I will get the following ciphertext:')
-multiplied_cipher = cryptosystem.multiply_by_constant(ciphertext1, 2)
+print(f'\nI can also multiply the ciphertext with a constant. For example, if I multiply by {multiplier}, I will get the following ciphertext:')
+multiplied_cipher = cryptosystem.multiply_by_constant(ciphertext1, multiplier)
 print(multiplied_cipher)
 print(f'But if I decrypt, I will get: {cryptosystem.decrypt(ciphertext=multiplied_cipher)}')
 
 print('\nThe Paillier cryptosystem also has an additively homomorphic property, showcased below:')
 
-ciphertext2 = cryptosystem.encrypt(message=5)
+message2 = 5
+ciphertext2 = cryptosystem.encrypt(message=message2)
 
-print(f'\nEncrypting the number 5 will yield the following ciphertext:\n {ciphertext2}')
+print(f'\nEncrypting the number {message2} will yield the following ciphertext:\n {ciphertext2}')
 
 ciphertext_sum = cryptosystem.add(cipher1 = ciphertext1, cipher2 = ciphertext2)
 print(f'\nIf I add these two ciphertexts, I will get\n {ciphertext_sum}\n\n which decrypts to: {cryptosystem.decrypt(ciphertext_sum)}')
