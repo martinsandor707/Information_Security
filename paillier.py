@@ -1,43 +1,34 @@
 import sympy
 import random
+import numpy as np
+import json
 
 class Paillier():
+    """
+    Based on the original study made by Pascal Paillier
+    https://link.springer.com/content/pdf/10.1007/3-540-48910-X_16.pdf
 
+    and the corresponding wiki article
+    https://en.wikipedia.org/wiki/Paillier_cryptosystem
+
+
+    """
     plaintext_modulo = 0
     ciphertext_modulo = 0
 
     def __init__(self, keys = None):
-        self.keys = self.generate_keys()
-
+        self.keys = self.read_keys()
         self.plaintext_modulo = self.keys['public_key']['n']
         self.ciphertext_modulo = self.keys['public_key']['n']**2
 
 
-    def generate_keys(self):
-        
-        p = sympy.randprime(200, 2**4096-1)
-        q = sympy.randprime(200, 2**4096-1)
-        phi = (p-1)*(q-1)
-        while p == q or sympy.gcd(p*q,phi) != 1:
-            q = sympy.randprime(200, 2**4096-1)
+    def read_keys(self):
+        #I could generate the keys normally, but I really don't want to wait
+        #several minutes every time I test this script.
+        with open('keys.txt') as f:
+            data = f.read()
 
-        # Public (Encryption) key
-        n = p*q
-        g = n + 1
-
-        # Private (Decryption) key
-        mu = pow(phi,-1,n)
-        myLambda = sympy.lcm(p-1,q-1)
-
-        ciphertext_modulo = n**2
-
-        keys = {}
-        keys['private_key'] = {}
-        keys['public_key'] = {}
-        keys['private_key']['mu'] = mu
-        keys['private_key']['lambda'] = myLambda
-        keys['public_key']['n'] = n
-        keys['public_key']['g'] = g
+        keys = json.loads(data)
 
         return keys
 
@@ -47,37 +38,66 @@ class Paillier():
 
         # A one-time random key has to be generated for every encryption
         r = random.randint(0, n)
-
+        g = self.keys['public_key']['g']
         while sympy.gcd(r,n) != 1:
             r = random.randint(0, n)
 
-        ciphertext = (self.keys['public_key']['g']**message * r**n) % n**2
-        #TODO: This line is S L O W ! Need to rewrite in numpy  
+        ciphertext = (pow(g,message,n*n) * pow(r,n,n*n)) % (n*n)
+        # Note to self: NEVER use the ** operator for exponentiation of large
+        # numbers, it is S L O W as hell. Use the pow() function instead
 
         return ciphertext
 
     def decrypt(self, ciphertext: int):
         n = self.keys['public_key']['n']
-        myLambda = self.keys['private_key']['lambda']
-        mu = self.keys['private_key']['mu'] 
+        phi = self.keys['private_key']['phi']
+        mu = pow(phi,-1,n)
 
-        plaintext = (self.L_function(pow(ciphertext, myLambda, n**2)) * mu) % n 
+        plaintext = (self.lx(pow(ciphertext, phi, n*n)) * mu) % n 
 
         return plaintext
 
     #Convenience method for the L function 
-    def L_function(self, x):
-
+    def lx(self, x):
         return (x-1) // self.plaintext_modulo
 
-#TODO:Add homomorphic addition
+    def add(self, cipher1, cipher2):
+        n = self.keys['public_key']['n']
+        return (cipher1 * cipher2 ) % (n*n)
+
+    def reencrypt(self, cipher):
+        neutral_element = 1
+        neutral_cipher = self.encrypt(neutral_element)
+
+        return self.add(cipher,neutral_cipher)
+
+    def multiply_by_constant(self, cipher, constant):
+        n = self.keys['public_key']['n']
+        assert n > constant
+
+        return pow(cipher,constant, n*n)
+
 cryptosystem = Paillier()
 
-message = 10
-ciphertext = cryptosystem.encrypt(message=message)
-decrypted = cryptosystem.decrypt(ciphertext = ciphertext)
+message1 = 10
+ciphertext1 = cryptosystem.encrypt(message=message1)
+decrypted1 = cryptosystem.decrypt(ciphertext = ciphertext1)
 
+print(f'Original message is: {message1}')
+print(f'Ciphertext is: {ciphertext1}')
+print(f'Decrypted message is: {decrypted1}')
 
-print(f'Original message is: {message}')
-print(f'Ciphertext is: {ciphertext}')
-print(f'Decrypted message is: {decrypted}')
+multiplier = 2
+print(f'\nI can also multiply the ciphertext with a constant. For example, if I multiply by 2, I will get the following ciphertext:')
+multiplied_cipher = cryptosystem.multiply_by_constant(ciphertext1, 2)
+print(multiplied_cipher)
+print(f'But if I decrypt, I will get: {cryptosystem.decrypt(ciphertext=multiplied_cipher)}')
+
+print('\nThe Paillier cryptosystem also has an additively homomorphic property, showcased below:')
+
+ciphertext2 = cryptosystem.encrypt(message=5)
+
+print(f'\nEncrypting the number 5 will yield the following ciphertext:\n {ciphertext2}')
+
+ciphertext_sum = cryptosystem.add(cipher1 = ciphertext1, cipher2 = ciphertext2)
+print(f'\nIf I add these two ciphertexts, I will get\n {ciphertext_sum}\n\n which decrypts to: {cryptosystem.decrypt(ciphertext_sum)}')
