@@ -25,12 +25,35 @@ class Paillier():
     def read_keys(self):
         #I could generate the keys normally, but I really don't want to wait
         #several minutes every time I test this script.
-        with open('keys.txt') as f:
+        with open('keys_paillier.txt') as f:
             data = f.read()
 
         keys = json.loads(data)
+        
+        ## This is the regular key generation method
+        #p = sympy.randprime(200, 2**4096-1)
+        #q = sympy.randprime(200, 2**4096-1)
+        #phi = (p-1)*(q-1)
+        #while p == q or sympy.gcd(p*q,phi) != 1:
+        #    q = sympy.randprime(200, 2**4096-1)
+        ## Public (Encryption) key
+        #n = p*q
+        #g = n + 1
+        ## Private (Decryption) key
+        #mu = pow(phi,-1,n)
+        #myLambda = sympy.lcm(p-1,q-1)
+        #ciphertext_modulo = n**2
+        #keys = {}
+        #keys['private_key'] = {}
+        #keys['public_key'] = {}
+        #keys['private_key']['mu'] = mu
+        #keys['private_key']['lambda'] = myLambda
+        #keys['public_key']['n'] = n
+        #keys['public_key']['g'] = g
 
         return keys
+
+
 
     def encrypt(self, message: int):
         n = self.keys['public_key']['n']
