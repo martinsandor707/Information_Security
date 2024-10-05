@@ -14,6 +14,9 @@ class Damgard_Jurik():
 
     Some implementational ideas were taken from the LightPHE library.
 
+    If you don't want to read through the original paper, here is a shorter, very elegant explanation
+    https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-damgard-jurik-in-python/
+
     Trivia: The Damgard-Jurik cryptosystem is a generalization of the Paillier cryptosystem
     A.K.A.: A Paillier encrypted ciphertext can be decrypted using the Damgard-Jurik algorithm
     """
