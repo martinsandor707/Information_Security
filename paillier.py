@@ -17,43 +17,44 @@ class Paillier():
     ciphertext_modulo = 0
 
     def __init__(self, keys = None):
-        self.keys = self.read_keys()
+        #self.keys = self.generate_keys() #God forbid we make new keys every time
+        self.keys = self.read_keys("keys_paillier.txt")
         self.plaintext_modulo = self.keys['public_key']['n']
         self.ciphertext_modulo = self.keys['public_key']['n']**2
 
 
-    def read_keys(self):
-        #I could generate the keys normally, but I really don't want to wait
-        #several minutes every time I test this script.
-        with open('keys_paillier.txt') as f:
-            data = f.read()
-
-        keys = json.loads(data)
+    def generate_keys(self):
         
-        ## This is the regular key generation method
-        #p = sympy.randprime(200, 2**4096-1)
-        #q = sympy.randprime(200, 2**4096-1)
-        #phi = (p-1)*(q-1)
-        #while p == q or sympy.gcd(p*q,phi) != 1:
-        #    q = sympy.randprime(200, 2**4096-1)
-        ## Public (Encryption) key
-        #n = p*q
-        #g = n + 1
-        ## Private (Decryption) key
-        #mu = pow(phi,-1,n)
-        #myLambda = sympy.lcm(p-1,q-1)
-        #ciphertext_modulo = n**2
-        #keys = {}
-        #keys['private_key'] = {}
-        #keys['public_key'] = {}
-        #keys['private_key']['mu'] = mu
-        #keys['private_key']['lambda'] = myLambda
-        #keys['public_key']['n'] = n
-        #keys['public_key']['g'] = g
+        # This is the regular key generation method
+        p = sympy.randprime(200, pow(2,4096)-1) # DON'T ACTUALLY USE THIS LIBRARY FOR REAL KEYGEN
+        q = sympy.randprime(200, pow(2,4096)-1) # sympy.randprime() is not mathematically safe
+        phi = (p-1)*(q-1)
+        while p == q or sympy.gcd(p*q,phi) != 1: #Enforcing mathematical properties
+            q = sympy.randprime(200, pow(2,4096)-1)
+        # Public (Encryption) key
+        n = p*q
+        g = n + 1
+        # Private (Decryption) key
+        mu = pow(phi,-1,n)
+        #myLambda = sympy.lcm(p-1,q-1) #This should be the real private key, but it takes really long to calculate
+                                       #It has been stated that for implementational purposes, using phi is sufficient
+        ciphertext_modulo = n**2
+        keys = {}
+        keys['private_key'] = {}
+        keys['public_key'] = {}
+        keys['private_key']['phi'] = phi
+        keys['public_key']['n'] = n
+        keys['public_key']['g'] = g
 
         return keys
 
 
+    def read_keys(self, filename:str):
+        with open(filename) as f:
+            data = f.read()
+
+        keys = json.loads(data)
+        return keys
 
     def encrypt(self, message: int):
         n = self.keys['public_key']['n']
