@@ -90,7 +90,7 @@ class Paillier():
         return (cipher1 * cipher2 ) % (n*n)
 
     def reencrypt(self, cipher):
-        neutral_element = 1
+        neutral_element = 0
         neutral_cipher = self.encrypt(neutral_element)
 
         return self.add(cipher,neutral_cipher)
