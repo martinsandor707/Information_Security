@@ -4,6 +4,7 @@ import random
 import numpy as np
 import json
 
+
 class Damgard_Jurik():
     """
     Based on the original study made by Ivan Damgard and Mads Jurik
@@ -94,16 +95,16 @@ class Damgard_Jurik():
         while sympy.gcd(r, n) != 1:
             r = random.randint(0, n)
 
-        ciphertext = (pow(g,message,ciphertext_modulo) * pow(r,plaintext_modulo,ciphertext_modulo)) % ciphertext_modulo
-        
+        ciphertext = (pow(g, message, ciphertext_modulo) * pow(r, plaintext_modulo, ciphertext_modulo)) % ciphertext_modulo
+
         return ciphertext
 
 
     def decrypt(self, ciphertext: int):
         n = self.keys['public_key']['n']
         d = self.keys['private_key']['d']
-        mu = pow(d,-1,n)
-        return ( self.lx(pow(ciphertext, d, self.ciphertext_modulo)) * mu ) % n  # This is where the magic happens 
+        mu = pow(d, -1, n)
+        return (self.lx(pow(ciphertext, d, self.ciphertext_modulo)) * mu ) % n  # This is where the magic happens 
 
     #Convenience method for the L function 
     def lx(self, x):
@@ -111,20 +112,19 @@ class Damgard_Jurik():
         return (x-1) // n 
 
     def add(self, cipher1, cipher2):
-        return (cipher1 * cipher2 ) % self.ciphertext_modulo
+        return (cipher1 * cipher2) % self.ciphertext_modulo
 
     def reencrypt(self, cipher):
         neutral_element = 0
         neutral_cipher = self.encrypt(neutral_element)
 
-        return self.add(cipher,neutral_cipher)
+        return self.add(cipher, neutral_cipher)
 
     def multiply_by_constant(self, cipher, constant):
-        n = self.keys['public_key']['n']
-        s = self.keys['public_key']['s']
+        
         assert self.plaintext_modulo > constant
 
-        return pow(cipher,constant,self.ciphertext_modulo)
+        return pow(cipher, constant, self.ciphertext_modulo)
 
 dj = Damgard_Jurik(s=2)
 #print(dj.keys)
@@ -138,7 +138,7 @@ decrypted = dj.decrypt(cipher1)
 print(f"The original message was: {message1}")
 print(f"\nThe ciphertext is: {cipher1}")
 print(f"\nThe decrypted message is: {decrypted}")
-print(f"\nOriginal cipher multiplied by 2 then decrypted: {dj.multiply_by_constant(cipher1,2)}")
+print(f"\nOriginal cipher multiplied by 2 then decrypted: {dj.decrypt(dj.multiply_by_constant(cipher1,2))}")
 
 message2 = 5
 cipher2 = dj.encrypt(message2)
